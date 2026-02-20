@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "title": "Free Demo Classes",
+    "icon": "🎓",
+    "shortDesc": "Try before you commit",
+    "fullDesc": "Every tutor on TutorsLink offers a free 30-minute demo session. Get a feel for your tutor's teaching style, ask questions, and decide if it's the right fit — with absolutely no cost and no obligation.",
+    "highlight": true
+  },
+  {
+    "id": 2,
+    "title": "Global Tutor Network",
+    "icon": "🌐",
+    "shortDesc": "Learn from anywhere in the world",
+    "fullDesc": "Our tutors span over 40 countries across multiple time zones. Whether you need early morning sessions or late night study, there's always a qualified tutor available to match your schedule.",
+    "highlight": false
+  },
+  {
+    "id": 3,
+    "title": "Money-Back Guarantee",
+    "icon": "💰",
+    "shortDesc": "Full refund if unsatisfied",
+    "fullDesc": "Not happy? We offer a genuine money-back refund policy — not just a tutor swap. If your sessions don't meet expectations, we'll refund your payment. Your satisfaction is our priority.",
+    "highlight": true
+  },
+  {
+    "id": 4,
+    "title": "Easy Tutor Application",
+    "icon": "✅",
+    "shortDesc": "Join our team in minutes",
+    "fullDesc": "Applying to become a tutor is simple and open to everyone. Fill out our quick application form, share your qualifications and teaching interests, and start earning on your own schedule.",
+    "highlight": false
+  },
+  {
+    "id": 5,
+    "title": "Flexible Scheduling",
+    "icon": "📅",
+    "shortDesc": "Learn on your terms",
+    "fullDesc": "Book sessions that work around your life. TutorsLink's scheduling system lets students and tutors agree on session times directly, with easy rescheduling and calendar integration.",
+    "highlight": false
+  },
+  {
+    "id": 6,
+    "title": "Verified Qualifications",
+    "icon": "🏅",
+    "shortDesc": "Trusted, qualified tutors",
+    "fullDesc": "All tutors on TutorsLink go through a qualification verification process. We check academic credentials, review teaching samples, and collect references so you can learn with confidence.",
+    "highlight": false
+  }
+]
