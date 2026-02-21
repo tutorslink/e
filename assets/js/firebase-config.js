@@ -1,5 +1,5 @@
 var FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDwL0xvxsJGgHAOknipNKq7hTGgqaYpWr0",
+  apiKey: "REPLACE_WITH_YOUR_API_KEY",
   authDomain: "tutorslink0.firebaseapp.com",
   projectId: "tutorslink0",
   storageBucket: "tutorslink0.firebasestorage.app",
