@@ -15,7 +15,7 @@
  * See docs/discord-integration.md for Discord-specific setup.
  */
 const firebaseConfig = {
-  apiKey: "AIzaSyDwL0xvxsJGgHAOknipNKq7hTGgqaYpWr0",
+  apiKey: "AIzaSyC6P4YGhn1tGYXMS84KkNr5lMqb9SM5suQ",
   authDomain: "tutorslink0.firebaseapp.com",
   projectId: "tutorslink0",
   storageBucket: "tutorslink0.firebasestorage.app",
