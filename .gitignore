@@ -1,0 +1,22 @@
+# Firebase
+.runtimeconfig.json
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Node / Functions dependencies
+functions/node_modules/
+
+# Environment / secrets — NEVER commit these
+.env
+.env.local
+.env.*.local
+*.secret
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

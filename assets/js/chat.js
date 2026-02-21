@@ -20,6 +20,8 @@
 
   var responseIndex = 0;
   var typingTimeout = null;
+  /* Unique session ID per page load for Firestore grouping */
+  var chatSessionId = 'chat-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
 
   /**
    * Get the next staff response (cycles through the list).
@@ -117,6 +119,11 @@
     input.style.height = '';
 
     appendMessage(messagesEl, 'user', text);
+
+    /* Notify Cloud Function (fire-and-forget, stub if not configured) */
+    if (window.TLFunctions && window.TLFunctions.createSupportChatMessage) {
+      window.TLFunctions.createSupportChatMessage(text, chatSessionId);
+    }
 
     if (typingTimeout) clearTimeout(typingTimeout);
     simulateReply(messagesEl, typingEl);

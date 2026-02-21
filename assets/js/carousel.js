@@ -207,12 +207,79 @@
         tutor.languages.map(function (l) { return '<span class="tl-tag">' + escHtml(l) + '</span>'; }).join('') +
       '</div>' +
       '<div class="tl-modal__actions">' +
-        '<a href="#" class="btn btn-primary">Book Free Demo</a>' +
-        '<a href="#" class="btn btn-secondary">Message Tutor</a>' +
+        '<button class="btn btn-primary" data-book-demo="' + tutor.id + '" data-tutor-name="' + escHtml(tutor.name) + '">Book Free Demo</button>' +
+        '<button class="btn btn-secondary" onclick="window.TLFunctions&&window.TLFunctions.showToast(\'Messaging coming soon!\',\'success\')">Message Tutor</button>' +
+      '</div>';
+
+    /* Wire demo booking button */
+    var bookBtn = body.querySelector('[data-book-demo]');
+    if (bookBtn) {
+      bookBtn.addEventListener('click', function () {
+        closeTutorModal();
+        openBookingConfirmModal(tutor);
+      });
+    }
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  /* ---- Demo Booking Confirmation Modal ---- */
+  function openBookingConfirmModal(tutor) {
+    var overlay = document.getElementById('booking-confirm-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id        = 'booking-confirm-overlay';
+      overlay.className = 'tl-modal-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-labelledby', 'booking-confirm-title');
+      document.body.appendChild(overlay);
+
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closeBookingConfirmModal();
+      });
+    }
+
+    overlay.innerHTML =
+      '<div class="tl-modal" style="max-width:440px;text-align:center;">' +
+        '<button class="tl-modal__close" id="booking-confirm-close" aria-label="Cancel booking">&#10005;</button>' +
+        '<div style="font-size:3rem;margin-bottom:1rem;">🎓</div>' +
+        '<h2 class="tl-section__title" id="booking-confirm-title" style="margin-bottom:0.75rem;">Book Free Demo</h2>' +
+        '<p style="color:var(--color-text-muted);margin-bottom:1.5rem;line-height:1.6;">' +
+          'You\'re about to book a free 30-minute demo session with<br>' +
+          '<strong style="color:var(--color-yellow);">' + escHtml(tutor.name) + '</strong>.' +
+        '</p>' +
+        '<p style="font-size:0.82rem;color:var(--color-text-muted);margin-bottom:1.5rem;">' +
+          'Our team will contact you within 24 hours to confirm a time that works for both of you.' +
+        '</p>' +
+        '<div style="display:flex;gap:0.75rem;justify-content:center;">' +
+          '<button class="btn btn-primary" id="booking-confirm-btn">Confirm Booking</button>' +
+          '<button class="btn btn-outline" id="booking-cancel-btn">Cancel</button>' +
+        '</div>' +
       '</div>';
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
+
+    document.getElementById('booking-confirm-close').addEventListener('click', closeBookingConfirmModal);
+    document.getElementById('booking-cancel-btn').addEventListener('click', closeBookingConfirmModal);
+    document.getElementById('booking-confirm-btn').addEventListener('click', function () {
+      closeBookingConfirmModal();
+      /* Notify Cloud Function */
+      if (window.TLFunctions && window.TLFunctions.bookDemoClass) {
+        window.TLFunctions.bookDemoClass(tutor.id, { tutorName: tutor.name, subject: tutor.subject });
+      }
+      if (window.TLFunctions && window.TLFunctions.showToast) {
+        window.TLFunctions.showToast('🎉 Demo booked! We\'ll be in touch within 24 hours.', 'success');
+      }
+    });
+  }
+
+  function closeBookingConfirmModal() {
+    var overlay = document.getElementById('booking-confirm-overlay');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
   }
 
   function closeTutorModal() {
@@ -267,9 +334,12 @@
       });
     }
 
-    /* ESC key closes modal */
+    /* ESC key closes modals */
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeTutorModal();
+      if (e.key === 'Escape') {
+        closeTutorModal();
+        closeBookingConfirmModal();
+      }
     });
   });
 
