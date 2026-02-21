@@ -14,11 +14,12 @@
  *
  * See docs/discord-integration.md for Discord-specific setup.
  */
-var FIREBASE_CONFIG = {
-  apiKey:            "REPLACE_WITH_YOUR_API_KEY",
-  authDomain:        "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-  projectId:         "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket:     "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-  messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
-  appId:             "REPLACE_WITH_YOUR_APP_ID"
+const firebaseConfig = {
+  apiKey: "AIzaSyDwL0xvxsJGgHAOknipNKq7hTGgqaYpWr0",
+  authDomain: "tutorslink0.firebaseapp.com",
+  projectId: "tutorslink0",
+  storageBucket: "tutorslink0.firebasestorage.app",
+  messagingSenderId: "206082313631",
+  appId: "1:206082313631:web:6fba050bd922d097ab01aa",
+  measurementId: "G-S3K4GHKC1W"
 };
