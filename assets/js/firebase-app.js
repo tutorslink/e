@@ -329,16 +329,19 @@
    * @param {Object} data  Form data fields
    * @returns {Promise}
    */
-  function submitTutorApplication(data) {
-    var tlf = window.__TLFirebase;
-    if (tlf && _fns) {
-      var fn = tlf.httpsCallable(_fns, 'submitTutorApplication');
-      return fn(data);
-    }
-    /* Stub: log and resolve */
-    console.info('[TutorsLink stub] submitTutorApplication', data);
-    return Promise.resolve({ data: { success: true, stub: true } });
+function submitTutorApplication(data) {
+  var tlf = window.__TLFirebase;
+  if (tlf && _db) {
+    // Instead of calling a function, we save directly to the 'tutorApplications' collection
+    return tlf.addDoc(tlf.collection(_db, 'tutorApplications'), {
+      ...data,
+      submittedAt: tlf.serverTimestamp(),
+      status: 'pending'
+    });
   }
+  console.info('[Stub] submitTutorApplication', data);
+  return Promise.resolve();
+}
 
   /**
    * Send a support chat message to Firestore / Cloud Function.
