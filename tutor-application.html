@@ -17,14 +17,15 @@
     </a>
     <ul class="tl-nav__links" role="list">
       <li><a href="index.html">Home</a></li>
-      <li><a href="index.html#tutors">Find a Tutor</a></li>
+      <li><a href="find-a-tutor.html">Find a Tutor</a></li>
       <li><a href="tutor-application.html" class="active">Apply as Tutor</a></li>
       <li><a href="about.html">About</a></li>
       <li><a href="contact.html">Contact</a></li>
-      <li><a href="index.html#policies">Policies</a></li>
+      <li><a href="policies.html">Policies</a></li>
+      <li><a href="guides.html">Guides &amp; Help</a></li>
     </ul>
     <div class="tl-nav__cta">
-      <a href="index.html#tutors" class="btn btn-outline">Find a Tutor</a>
+      <a href="find-a-tutor.html" class="btn btn-outline">Find a Tutor</a>
       <a href="tutor-application.html" class="btn btn-primary">Apply as Tutor</a>
     </div>
     <button class="tl-nav__hamburger" aria-label="Toggle menu" aria-expanded="false">
@@ -308,7 +309,7 @@
             <div class="tl-form-group tl-checkbox-group">
               <input type="checkbox" id="agree-terms" name="agreeTerms" required />
               <label for="agree-terms">
-                I have read and agree to the <a href="index.html#policies">TutorsLink Terms of Service and Community Guidelines</a>.
+                I have read and agree to the <a href="policies.html">TutorsLink Terms of Service and Community Guidelines</a>.
               </label>
             </div>
           </div>
@@ -334,8 +335,10 @@
       <div class="tl-footer__col">
         <h4>Platform</h4>
         <ul>
-          <li><a href="index.html#tutors">Find a Tutor</a></li>
+          <li><a href="find-a-tutor.html">Find a Tutor</a></li>
           <li><a href="tutor-application.html">Apply as Tutor</a></li>
+          <li><a href="index.html#features">Features</a></li>
+          <li><a href="index.html#why-us">Why Us</a></li>
         </ul>
       </div>
       <div class="tl-footer__col">
@@ -343,6 +346,8 @@
         <ul>
           <li><a href="about.html">About</a></li>
           <li><a href="contact.html">Contact</a></li>
+          <li><a href="policies.html">Policies</a></li>
+          <li><a href="guides.html">Guides &amp; Help</a></li>
         </ul>
       </div>
       <div class="tl-footer__col">
@@ -351,6 +356,7 @@
           <li><a href="#">Instagram</a></li>
           <li><a href="#">TikTok</a></li>
           <li><a href="#">Twitter / X</a></li>
+          <li><a href="#">Facebook</a></li>
         </ul>
       </div>
     </div>
@@ -362,17 +368,18 @@
   <!-- ====== Toast ====== -->
   <div class="tl-toast" id="tl-toast" role="alert" aria-live="polite"></div>
 
+  <script src="assets/js/firebase-app.js"></script>
   <script src="assets/js/carousel.js"></script>
   <script>
     /* Form submission handler */
     document.addEventListener('DOMContentLoaded', function () {
-      var form  = document.getElementById('tutor-application-form');
-      var toast = document.getElementById('tl-toast');
+      var form       = document.getElementById('tutor-application-form');
+      var submitBtn  = form.querySelector('[type="submit"]');
 
       function showToast(msg, type) {
-        toast.textContent = msg;
-        toast.className = 'tl-toast tl-toast--' + type + ' show';
-        setTimeout(function () { toast.classList.remove('show'); }, 4000);
+        if (window.TLFunctions && window.TLFunctions.showToast) {
+          window.TLFunctions.showToast(msg, type);
+        }
       }
 
       form.addEventListener('submit', function (e) {
@@ -380,9 +387,9 @@
 
         /* Basic validation */
         var required = form.querySelectorAll('[required]');
-        var valid = true;
+        var valid    = true;
         required.forEach(function (el) {
-          if (el.type === 'checkbox' && !el.checked) { valid = false; }
+          if (el.type === 'checkbox' && !el.checked)      { valid = false; }
           else if (el.type !== 'checkbox' && !el.value.trim()) { valid = false; el.focus(); }
         });
 
@@ -391,10 +398,32 @@
           return;
         }
 
-        /* Simulate successful submission */
-        showToast('🎉 Application submitted! We\'ll be in touch within 2 business days.', 'success');
-        form.reset();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        /* Collect form data */
+        var data = {};
+        new FormData(form).forEach(function (val, key) { data[key] = val; });
+
+        /* Disable button to prevent double-submit */
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting…';
+
+        /* Submit via Cloud Function (or stub) */
+        var submit = (window.TLFunctions && window.TLFunctions.submitTutorApplication)
+          ? window.TLFunctions.submitTutorApplication(data)
+          : Promise.resolve({ data: { success: true } });
+
+        submit
+          .then(function () {
+            showToast('🎉 Application submitted! We\'ll be in touch within 2 business days.', 'success');
+            form.reset();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          })
+          .catch(function (err) {
+            showToast('Submission failed: ' + (err.message || 'Please try again.'), 'error');
+          })
+          .finally(function () {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Application';
+          });
       });
     });
   </script>

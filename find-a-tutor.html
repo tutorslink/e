@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find a Tutor – TutorsLink</title>
+  <meta name="description" content="Browse our global network of verified tutors. Filter by subject and level to find your perfect match." />
+  <link rel="stylesheet" href="assets/css/tutorslink.css" />
+</head>
+<body>
+
+  <!-- ====== Navigation ====== -->
+  <nav class="tl-nav" role="navigation" aria-label="Main navigation">
+    <a href="index.html" class="tl-nav__logo" aria-label="TutorsLink home">
+      <div class="tl-nav__logo-icon" aria-hidden="true">🎓</div>
+      TutorsLink
+    </a>
+    <ul class="tl-nav__links" role="list">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="find-a-tutor.html" class="active">Find a Tutor</a></li>
+      <li><a href="tutor-application.html">Apply as Tutor</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="policies.html">Policies</a></li>
+      <li><a href="guides.html">Guides &amp; Help</a></li>
+    </ul>
+    <div class="tl-nav__cta">
+      <a href="find-a-tutor.html" class="btn btn-outline">Find a Tutor</a>
+      <a href="tutor-application.html" class="btn btn-primary">Apply as Tutor</a>
+    </div>
+    <button class="tl-nav__hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ====== Page Header ====== -->
+  <header class="tl-page-header">
+    <div class="tl-section__tag">Our Tutors</div>
+    <h1>Find a Tutor</h1>
+    <p>Browse our global network of verified tutors</p>
+  </header>
+
+  <!-- ====== Filter Bar ====== -->
+  <section class="tl-section" style="padding-top:2rem;padding-bottom:0.5rem;" aria-label="Filter tutors">
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;max-width:1100px;margin:0 auto;">
+      <label for="filter-level" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Level</label>
+      <select id="filter-level" class="tl-filter-select" aria-label="Filter by level">
+        <option value="">All Levels</option>
+        <option value="Primary/Elementary">Primary/Elementary</option>
+        <option value="Secondary/High School">Secondary/High School</option>
+        <option value="A-Level/Pre-University">A-Level/Pre-University</option>
+        <option value="Undergraduate">Undergraduate</option>
+        <option value="Postgraduate">Postgraduate</option>
+        <option value="Adult/Professional">Adult/Professional</option>
+      </select>
+
+      <label for="filter-subject" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Subject</label>
+      <select id="filter-subject" class="tl-filter-select" aria-label="Filter by subject">
+        <option value="">All Subjects</option>
+        <option value="Mathematics">Mathematics</option>
+        <option value="Physics">Physics</option>
+        <option value="Chemistry">Chemistry</option>
+        <option value="English/ESL">English/ESL</option>
+        <option value="Spanish">Spanish</option>
+        <option value="Computer Science">Computer Science</option>
+        <option value="Biology">Biology</option>
+        <option value="History">History</option>
+        <option value="Geography">Geography</option>
+        <option value="Economics">Economics</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="filter-name" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Search by name</label>
+      <input
+        id="filter-name"
+        type="search"
+        class="tl-filter-select"
+        placeholder="Search tutor name…"
+        aria-label="Search by tutor name"
+        style="min-width:200px;"
+      />
+    </div>
+  </section>
+
+  <!-- ====== Tutor Grid ====== -->
+  <section class="tl-section tl-section--alt" aria-labelledby="tutor-grid-title">
+    <div class="tl-section__header" style="margin-bottom:1.5rem;">
+      <h2 class="tl-section__title" id="tutor-grid-title" style="font-size:1.25rem;">Available Tutors</h2>
+    </div>
+
+    <div
+      id="tutor-grid"
+      role="list"
+      aria-label="Tutor listings"
+      style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.5rem;"
+    >
+      <div style="padding:2rem;color:var(--color-text-muted);grid-column:1/-1;text-align:center;">Loading tutors…</div>
+    </div>
+
+    <div id="no-results" role="status" aria-live="polite" style="display:none;text-align:center;padding:3rem 1rem;color:var(--color-text-muted);">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">🔍</div>
+      <p style="font-size:1.1rem;font-weight:600;color:var(--color-white);">No tutors found</p>
+      <p>Try adjusting your filters or search term.</p>
+    </div>
+  </section>
+
+  <!-- ====== Footer ====== -->
+  <footer class="tl-footer" role="contentinfo">
+    <div class="tl-footer__grid">
+      <div class="tl-footer__brand">
+        <a href="index.html" class="tl-nav__logo" style="margin-bottom:0.5rem">
+          <div class="tl-nav__logo-icon" aria-hidden="true">🎓</div>
+          TutorsLink
+        </a>
+        <p>Connecting students and tutors all over the world. Learn anything, from anyone, anywhere.</p>
+      </div>
+      <div class="tl-footer__col">
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="find-a-tutor.html">Find a Tutor</a></li>
+          <li><a href="tutor-application.html">Apply as Tutor</a></li>
+          <li><a href="index.html#features">Features</a></li>
+          <li><a href="index.html#why-us">Why Us</a></li>
+        </ul>
+      </div>
+      <div class="tl-footer__col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="policies.html">Policies</a></li>
+          <li><a href="guides.html">Guides &amp; Help</a></li>
+        </ul>
+      </div>
+      <div class="tl-footer__col" id="socials">
+        <h4>Follow Us</h4>
+        <ul>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">TikTok</a></li>
+          <li><a href="#">Twitter / X</a></li>
+          <li><a href="#">Facebook</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tl-footer__bottom">
+      <p>&copy; 2025 TutorsLink. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- ====== Tutor Profile Modal ====== -->
+  <div class="tl-modal-overlay" id="tutor-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="tutor-modal-title">
+    <div class="tl-modal">
+      <button class="tl-modal__close" id="tutor-modal-close" aria-label="Close modal">&#10005;</button>
+      <div id="tutor-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ====== Booking Confirmation Modal ====== -->
+  <div class="tl-modal-overlay" id="booking-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="booking-modal-title">
+    <div class="tl-modal" style="max-width:420px;text-align:center;">
+      <button class="tl-modal__close" id="booking-modal-close" aria-label="Close booking modal">&#10005;</button>
+      <div style="font-size:2.5rem;margin-bottom:1rem;" aria-hidden="true">📅</div>
+      <h2 id="booking-modal-title" style="font-size:1.2rem;color:var(--color-white);margin-bottom:0.5rem;">Book a Free Demo</h2>
+      <p id="booking-modal-desc" style="color:var(--color-text-muted);margin-bottom:1.75rem;line-height:1.6;"></p>
+      <div style="display:flex;gap:0.75rem;">
+        <button id="booking-confirm-btn" class="btn btn-primary" style="flex:1;">Confirm Booking</button>
+        <button id="booking-cancel-btn" class="btn btn-outline" style="flex:1;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Toast ====== -->
+  <div class="tl-toast" id="tl-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="assets/js/carousel.js"></script>
+  <script src="assets/js/firebase-app.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    /* ---- Utility ---- */
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g,  '&amp;')
+        .replace(/</g,  '&lt;')
+        .replace(/>/g,  '&gt;')
+        .replace(/"/g,  '&quot;')
+        .replace(/'/g,  '&#39;');
+    }
+
+    /* ---- State ---- */
+    var allTutors = [];
+    var pendingBookingTutorId = null;
+
+    /* ---- Toast ---- */
+    function showToast(message, type) {
+      var toast = document.getElementById('tl-toast');
+      if (!toast) return;
+      toast.textContent = message;
+      toast.className = 'tl-toast tl-toast--' + (type || 'success') + ' show';
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(function () {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    /* ---- Render tutor card (grid variant) ---- */
+    function renderGridCard(t) {
+      return (
+        '<div class="tl-tutor-card" role="listitem" data-id="' + t.id + '" style="flex:unset;cursor:default;">' +
+          '<div class="tl-tutor-card__avatar" style="background:' + escHtml(t.avatarColor) + '">' + escHtml(t.avatar) + '</div>' +
+          '<div class="tl-tutor-card__name">' + escHtml(t.name) + '</div>' +
+          '<div class="tl-tutor-card__subject">' + escHtml(t.subjectIcon) + ' ' + escHtml(t.subject) + '</div>' +
+          '<div class="tl-tutor-card__rating">★ ' + escHtml(String(t.rating)) + '<span class="text-muted"> (' + escHtml(String(t.reviews)) + ' reviews)</span></div>' +
+          '<div class="tl-tutor-card__meta"><span>💰 ' + escHtml(t.rate) + '</span><span>🌍 ' + escHtml(t.timezone) + '</span></div>' +
+          '<div style="display:flex;gap:0.5rem;margin-top:auto;padding-top:0.75rem;">' +
+            '<button class="btn btn-primary tl-tutor-card__btn js-book-btn" data-id="' + t.id + '" style="flex:1;font-size:0.8rem;padding:0.5rem 0.25rem;">Book Free Demo</button>' +
+            '<button class="btn btn-outline tl-tutor-card__btn js-profile-btn" data-id="' + t.id + '" style="flex:1;font-size:0.8rem;padding:0.5rem 0.25rem;">View Profile</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }
+
+    /* ---- Render grid ---- */
+    function renderGrid(tutors) {
+      var grid      = document.getElementById('tutor-grid');
+      var noResults = document.getElementById('no-results');
+      if (!grid) return;
+
+      if (tutors.length === 0) {
+        grid.innerHTML = '';
+        if (noResults) noResults.style.display = 'block';
+        return;
+      }
+
+      if (noResults) noResults.style.display = 'none';
+      grid.innerHTML = tutors.map(renderGridCard).join('');
+
+      grid.querySelectorAll('.js-profile-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var id    = parseInt(btn.dataset.id, 10);
+          var tutor = allTutors.find(function (t) { return t.id === id; });
+          if (tutor) openProfileModal(tutor);
+        });
+      });
+
+      grid.querySelectorAll('.js-book-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var id    = parseInt(btn.dataset.id, 10);
+          var tutor = allTutors.find(function (t) { return t.id === id; });
+          if (tutor) openBookingModal(tutor);
+        });
+      });
+    }
+
+    /* ---- Filtering ---- */
+    function applyFilters() {
+      var levelVal   = document.getElementById('filter-level').value.toLowerCase();
+      var subjectVal = document.getElementById('filter-subject').value.toLowerCase();
+      var nameVal    = document.getElementById('filter-name').value.trim().toLowerCase();
+
+      var filtered = allTutors.filter(function (t) {
+        var subjectMatch = !subjectVal || t.subject.toLowerCase().indexOf(subjectVal) !== -1;
+        var nameMatch    = !nameVal    || t.name.toLowerCase().indexOf(nameVal)    !== -1;
+        /* tutors.json has no level field; level filter is reserved for future data enrichment */
+        return subjectMatch && nameMatch;
+      });
+
+      renderGrid(filtered);
+    }
+
+    /* ---- Profile Modal ---- */
+    function openProfileModal(tutor) {
+      /* Delegate to carousel.js openTutorModal if available */
+      if (window.TLCarousel && window.TLCarousel.openTutorModal) {
+        window.TLCarousel.openTutorModal(tutor);
+        return;
+      }
+      /* Fallback: render inline */
+      var overlay = document.getElementById('tutor-modal-overlay');
+      var body    = document.getElementById('tutor-modal-body');
+      if (!overlay || !body) return;
+
+      body.innerHTML =
+        '<div class="tl-modal__avatar" style="background:' + escHtml(tutor.avatarColor) + '">' + escHtml(tutor.avatar) + '</div>' +
+        '<div class="tl-modal__name" id="tutor-modal-title">'    + escHtml(tutor.name)    + '</div>' +
+        '<div class="tl-modal__subject">' + escHtml(tutor.subjectIcon) + ' ' + escHtml(tutor.subject) + '</div>' +
+        '<div class="tl-modal__meta-grid">' +
+          '<div class="tl-modal__meta-item"><div class="tl-modal__meta-label">Rate</div><div class="tl-modal__meta-value">' + escHtml(tutor.rate) + '</div></div>' +
+          '<div class="tl-modal__meta-item"><div class="tl-modal__meta-label">Timezone</div><div class="tl-modal__meta-value">' + escHtml(tutor.timezone) + '</div></div>' +
+          '<div class="tl-modal__meta-item"><div class="tl-modal__meta-label">Rating</div><div class="tl-modal__meta-value">★ ' + escHtml(String(tutor.rating)) + ' (' + escHtml(String(tutor.reviews)) + ')</div></div>' +
+          '<div class="tl-modal__meta-item"><div class="tl-modal__meta-label">Languages</div><div class="tl-modal__meta-value">' + escHtml(tutor.languages.join(', ')) + '</div></div>' +
+        '</div>' +
+        '<p class="tl-modal__bio">' + escHtml(tutor.bio) + '</p>' +
+        '<div class="tl-modal__tags">' +
+          tutor.languages.map(function (l) { return '<span class="tl-tag">' + escHtml(l) + '</span>'; }).join('') +
+        '</div>' +
+        '<div class="tl-modal__actions">' +
+          '<button class="btn btn-primary js-modal-book-btn" data-id="' + tutor.id + '">Book Free Demo</button>' +
+          '<a href="contact.html" class="btn btn-secondary">Message Tutor</a>' +
+        '</div>';
+
+      /* Book from inside profile modal */
+      var modalBookBtn = body.querySelector('.js-modal-book-btn');
+      if (modalBookBtn) {
+        modalBookBtn.addEventListener('click', function () {
+          closeProfileModal();
+          openBookingModal(tutor);
+        });
+      }
+
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeProfileModal() {
+      var overlay = document.getElementById('tutor-modal-overlay');
+      if (overlay) overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    /* ---- Booking Modal ---- */
+    function openBookingModal(tutor) {
+      pendingBookingTutorId = tutor.id;
+      var overlay = document.getElementById('booking-modal-overlay');
+      var desc    = document.getElementById('booking-modal-desc');
+      if (!overlay || !desc) return;
+
+      desc.textContent = "You're about to book a free demo with " + tutor.name + '.';
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeBookingModal() {
+      var overlay = document.getElementById('booking-modal-overlay');
+      if (overlay) overlay.classList.remove('open');
+      document.body.style.overflow = '';
+      pendingBookingTutorId = null;
+    }
+
+    function confirmBooking() {
+      var tutorId = pendingBookingTutorId;
+      closeBookingModal();
+
+      if (tutorId !== null && window.TLFunctions && typeof window.TLFunctions.bookDemoClass === 'function') {
+        window.TLFunctions.bookDemoClass(tutorId);
+      }
+
+      var tutor = allTutors.find(function (t) { return t.id === tutorId; });
+      var name  = tutor ? tutor.name : 'the tutor';
+      showToast('🎉 Demo booked with ' + name + '! Check your email for details.', 'success');
+    }
+
+    /* ---- Load tutors ---- */
+    function loadTutors() {
+      fetch('assets/data/tutors.json')
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (tutors) {
+          allTutors = tutors;
+          renderGrid(tutors);
+        })
+        .catch(function (err) {
+          console.error('Failed to load tutors:', err);
+          var grid = document.getElementById('tutor-grid');
+          if (grid) {
+            grid.innerHTML = '<p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center;padding:2rem;">Unable to load tutors. Please try again later.</p>';
+          }
+        });
+    }
+
+    /* ---- Mobile nav ---- */
+    function initMobileNav() {
+      var hamburger = document.querySelector('.tl-nav__hamburger');
+      var nav       = document.querySelector('.tl-nav');
+      if (!hamburger || !nav) return;
+
+      hamburger.addEventListener('click', function () {
+        var isOpen = nav.classList.toggle('mobile-open');
+        hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!nav.contains(e.target)) {
+          nav.classList.remove('mobile-open');
+          hamburger.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    /* ---- Init ---- */
+    document.addEventListener('DOMContentLoaded', function () {
+      initMobileNav();
+      loadTutors();
+
+      /* Filter listeners */
+      document.getElementById('filter-level').addEventListener('change', applyFilters);
+      document.getElementById('filter-subject').addEventListener('change', applyFilters);
+      document.getElementById('filter-name').addEventListener('input', applyFilters);
+
+      /* Profile modal close */
+      var profileClose = document.getElementById('tutor-modal-close');
+      if (profileClose) profileClose.addEventListener('click', closeProfileModal);
+
+      var profileOverlay = document.getElementById('tutor-modal-overlay');
+      if (profileOverlay) {
+        profileOverlay.addEventListener('click', function (e) {
+          if (e.target === profileOverlay) closeProfileModal();
+        });
+      }
+
+      /* Booking modal close */
+      document.getElementById('booking-modal-close').addEventListener('click', closeBookingModal);
+      document.getElementById('booking-cancel-btn').addEventListener('click', closeBookingModal);
+      document.getElementById('booking-confirm-btn').addEventListener('click', confirmBooking);
+
+      var bookingOverlay = document.getElementById('booking-modal-overlay');
+      if (bookingOverlay) {
+        bookingOverlay.addEventListener('click', function (e) {
+          if (e.target === bookingOverlay) closeBookingModal();
+        });
+      }
+
+      /* ESC closes whichever modal is open */
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          closeBookingModal();
+          closeProfileModal();
+        }
+      });
+    });
+
+  }());
+  </script>
+
+  <style>
+    .tl-filter-select {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      border-radius: var(--radius, 8px);
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+      flex: 1;
+      min-width: 160px;
+    }
+    .tl-filter-select:focus {
+      border-color: var(--color-yellow);
+    }
+    .tl-filter-select option {
+      background: var(--color-bg-card);
+    }
+  </style>
+</body>
+</html>
