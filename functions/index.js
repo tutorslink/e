@@ -154,7 +154,50 @@ exports.bookDemoClass = functions.https.onCall(async (data, context) => {
 });
 
 /* ------------------------------------------------------------------ */
-/*  4. syncDiscordAdsWebhook                                           */
+/*  5. Auto-grant staff (admin) role to the admin email on sign-up    */
+/* ------------------------------------------------------------------ */
+const ADMIN_EMAIL = 'tutorslink001@gmail.com';
+
+exports.setAdminClaimOnCreate = functions.auth.user().onCreate(async (user) => {
+  if (user.email && user.email.toLowerCase() === ADMIN_EMAIL) {
+    await admin.auth().setCustomUserClaims(user.uid, { staff: true });
+    functions.logger.info('Granted staff claim to admin user', { uid: user.uid, email: user.email });
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/*  6. Callable: assign tutor role when application is approved       */
+/* ------------------------------------------------------------------ */
+exports.approveTutorApplication = functions.https.onCall(async (data, context) => {
+  /* Only staff may call this */
+  if (!context.auth || !context.auth.token.staff) {
+    throw new functions.https.HttpsError('permission-denied', 'Only staff can approve tutor applications.');
+  }
+
+  const uid = String(data.uid || '').trim();
+  if (!uid) {
+    throw new functions.https.HttpsError('invalid-argument', 'uid is required.');
+  }
+
+  /* Merge with existing claims to avoid removing any already-granted roles */
+  const existing = (await admin.auth().getUser(uid)).customClaims || {};
+  await admin.auth().setCustomUserClaims(uid, { ...existing, tutor: true });
+
+  /* Update application status in Firestore if applicationId provided */
+  if (data.applicationId) {
+    await db.collection('tutorApplications').doc(String(data.applicationId)).update({
+      status: 'approved',
+      approvedAt: admin.firestore.FieldValue.serverTimestamp(),
+      approvedBy: context.auth.uid
+    });
+  }
+
+  functions.logger.info('Approved tutor', { uid, approvedBy: context.auth.uid });
+  return { success: true };
+});
+
+/* ------------------------------------------------------------------ */
+/*  7. syncDiscordAdsWebhook                                           */
 /*  Stub HTTP endpoint to receive events from Discord (e.g., bot ads) */
 /* ------------------------------------------------------------------ */
 exports.syncDiscordAdsWebhook = functions.https.onRequest(async (req, res) => {
