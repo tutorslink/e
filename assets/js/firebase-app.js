@@ -62,6 +62,7 @@
     initScript.type = 'module';
     initScript.textContent = [
       "import { initializeApp }       from '" + FB_SDK_BASE + "firebase-app.js';",
+      "import { getAnalytics }        from '" + FB_SDK_BASE + "firebase-analytics.js';",
       "import { getAuth, onAuthStateChanged, signInWithEmailAndPassword,",
       "         createUserWithEmailAndPassword, signInWithPopup,",
       "         GoogleAuthProvider, signOut }",
@@ -73,6 +74,7 @@
       "",
       "var cfg = " + JSON.stringify(cfg) + ";",
       "var app   = initializeApp(cfg);",
+      "if (cfg.measurementId) { getAnalytics(app); }",
       "var auth  = getAuth(app);",
       "var db    = getFirestore(app);",
       "var fns   = getFunctions(app);",
