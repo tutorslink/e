@@ -1,4 +1,4 @@
-var FIREBASE_CONFIG = {
+window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyDwL0xvxsJGgHAOknipNKq7hTGgqaYpWr0",
   authDomain: "tutorslink0.firebaseapp.com",
   projectId: "tutorslink0",
