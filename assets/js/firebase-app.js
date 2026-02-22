@@ -118,6 +118,8 @@
   var currentUser = null;
   var currentRole = ROLES.GUEST;
 
+  var ADMIN_EMAIL = 'tutorslink001@gmail.com';
+
   function handleAuthStateChange(user) {
     currentUser = user;
     if (!user) {
@@ -127,29 +129,52 @@
     }
 
     /* Read role from custom claims (set via Firebase Admin SDK in Cloud Functions) */
-    user.getIdTokenResult().then(function (result) {
+    user.getIdTokenResult(true).then(function (result) {
       var claims = result.claims;
-      if (claims.staff)  { currentRole = ROLES.STAFF; }
-      else if (claims.tutor)  { currentRole = ROLES.TUTOR; }
-      else { currentRole = ROLES.STUDENT; }
+      if (claims.staff || (user.email && user.email.toLowerCase() === ADMIN_EMAIL)) {
+        currentRole = ROLES.STAFF;
+      } else if (claims.tutor) {
+        currentRole = ROLES.TUTOR;
+      } else {
+        currentRole = ROLES.STUDENT;
+      }
       updateRoleUI(currentRole, user);
     }).catch(function () {
-      currentRole = ROLES.STUDENT;
-      updateRoleUI(ROLES.STUDENT, user);
+      /* Fallback: still grant staff to admin email */
+      currentRole = (user.email && user.email.toLowerCase() === ADMIN_EMAIL)
+        ? ROLES.STAFF
+        : ROLES.STUDENT;
+      updateRoleUI(currentRole, user);
     });
   }
 
   function updateRoleUI(role, user) {
     var authBtn    = document.getElementById('tl-auth-btn');
     var authStatus = document.getElementById('tl-auth-status');
+    var profileBtn = document.getElementById('tl-profile-btn');
 
     if (authBtn) {
       if (role === ROLES.GUEST) {
         authBtn.textContent = 'Sign In';
         authBtn.setAttribute('data-action', 'open-auth');
+        authBtn.hidden = false;
       } else {
-        authBtn.textContent = 'Sign Out';
-        authBtn.setAttribute('data-action', 'sign-out');
+        authBtn.hidden = true;
+      }
+    }
+
+    if (profileBtn) {
+      if (role === ROLES.GUEST) {
+        profileBtn.hidden = true;
+      } else {
+        var initial = user ? (user.displayName || user.email || '?').charAt(0).toUpperCase() : '?';
+        profileBtn.textContent = initial;
+        profileBtn.hidden = false;
+
+        var nameEl = document.getElementById('tl-profile-name');
+        var roleEl = document.getElementById('tl-profile-role');
+        if (nameEl) { nameEl.textContent = user ? (user.displayName || user.email || '') : ''; }
+        if (roleEl) { roleEl.textContent = role.charAt(0).toUpperCase() + role.slice(1); }
       }
     }
 
@@ -415,26 +440,76 @@ function submitTutorApplication(data) {
     btn.setAttribute('data-action', 'open-auth');
     btn.setAttribute('aria-label', 'Sign in to TutorsLink');
 
+    /* Profile icon — visible when signed in */
+    var profileBtn = document.createElement('button');
+    profileBtn.id        = 'tl-profile-btn';
+    profileBtn.className = 'tl-profile-icon';
+    profileBtn.hidden    = true;
+    profileBtn.setAttribute('aria-label', 'Your profile');
+    profileBtn.setAttribute('title', 'Your profile');
+    profileBtn.textContent = '?';
+
+    /* Dropdown menu for profile actions */
+    var dropdown = document.createElement('div');
+    dropdown.id        = 'tl-profile-dropdown';
+    dropdown.className = 'tl-profile-dropdown';
+    dropdown.hidden    = true;
+    dropdown.innerHTML = [
+      '<div class="tl-profile-dropdown__name" id="tl-profile-name"></div>',
+      '<div class="tl-profile-dropdown__role" id="tl-profile-role"></div>',
+      '<hr class="tl-profile-dropdown__divider" />',
+      '<button class="tl-profile-dropdown__item" id="tl-profile-signout">Sign Out</button>'
+    ].join('');
+
+    var profileWrap = document.createElement('div');
+    profileWrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;';
+    profileWrap.appendChild(profileBtn);
+    profileWrap.appendChild(dropdown);
+
     var status = document.createElement('span');
     status.id     = 'tl-auth-status';
     status.hidden = true;
     status.style.cssText = 'font-size:0.78rem;color:var(--color-text-muted);white-space:nowrap;';
 
     cta.insertBefore(status, cta.firstChild);
+    cta.insertBefore(profileWrap, cta.firstChild);
     cta.insertBefore(btn,    cta.firstChild);
 
     btn.addEventListener('click', function () {
       if (btn.getAttribute('data-action') === 'sign-out') {
-        var tlf = window.__TLFirebase;
-        if (tlf && _auth) {
-          tlf.signOut(_auth).then(function () {
-            showToast('You have been signed out.', 'success');
-          });
-        }
+        _doSignOut();
       } else {
         openAuthModal();
       }
     });
+
+    profileBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      dropdown.hidden = !dropdown.hidden;
+    });
+
+    /* Close dropdown when clicking outside — use capture to catch all clicks */
+    document.addEventListener('click', function onDocClick(e) {
+      if (!profileWrap.contains(e.target)) {
+        dropdown.hidden = true;
+      }
+    }, true);
+
+    dropdown.addEventListener('click', function (e) {
+      if (e.target && e.target.id === 'tl-profile-signout') {
+        _doSignOut();
+        dropdown.hidden = true;
+      }
+    });
+  }
+
+  function _doSignOut() {
+    var tlf = window.__TLFirebase;
+    if (tlf && _auth) {
+      tlf.signOut(_auth).then(function () {
+        showToast('You have been signed out.', 'success');
+      });
+    }
   }
 
   /* ------------------------------------------------------------------ */
@@ -449,7 +524,22 @@ function submitTutorApplication(data) {
       'color:var(--color-text-muted);border-radius:8px;padding:0.5rem 1rem;cursor:pointer;',
       'font-size:0.88rem;font-weight:600;transition:all var(--transition);}',
       '.tl-auth-tab:hover{border-color:var(--color-yellow);color:var(--color-yellow);}',
-      '.tl-auth-tab.active{background:var(--color-yellow);color:#000;border-color:var(--color-yellow);}'
+      '.tl-auth-tab.active{background:var(--color-yellow);color:#000;border-color:var(--color-yellow);}',
+      '.tl-profile-icon{width:34px;height:34px;border-radius:50%;background:var(--color-yellow);',
+      'color:#000;font-weight:700;font-size:0.95rem;border:none;cursor:pointer;',
+      'display:flex;align-items:center;justify-content:center;flex-shrink:0;}',
+      '.tl-profile-icon:hover{opacity:0.85;}',
+      '.tl-profile-dropdown{position:absolute;top:calc(100% + 8px);right:0;',
+      'background:var(--color-surface);border:1px solid var(--color-border);',
+      'border-radius:10px;padding:0.75rem;min-width:180px;z-index:9999;',
+      'box-shadow:0 8px 24px rgba(0,0,0,0.4);}',
+      '.tl-profile-dropdown__name{font-weight:600;font-size:0.88rem;color:var(--color-text);',
+      'word-break:break-all;margin-bottom:0.2rem;}',
+      '.tl-profile-dropdown__role{font-size:0.78rem;color:var(--color-yellow);margin-bottom:0.5rem;}',
+      '.tl-profile-dropdown__divider{border:none;border-top:1px solid var(--color-border);margin:0.5rem 0;}',
+      '.tl-profile-dropdown__item{background:none;border:none;color:var(--color-text-muted);',
+      'font-size:0.85rem;cursor:pointer;padding:0.3rem 0;width:100%;text-align:left;}',
+      '.tl-profile-dropdown__item:hover{color:var(--color-yellow);}'
     ].join('');
     document.head.appendChild(style);
   }
