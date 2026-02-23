@@ -67,7 +67,7 @@
       "         createUserWithEmailAndPassword, signInWithPopup,",
       "         GoogleAuthProvider, signOut }",
       "  from '" + FB_SDK_BASE + "firebase-auth.js';",
-      "import { getFirestore, collection, addDoc, serverTimestamp }",
+      "import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, where, orderBy }",
       "  from '" + FB_SDK_BASE + "firebase-firestore.js';",
       "import { getFunctions, httpsCallable }",
       "  from '" + FB_SDK_BASE + "firebase-functions.js';",
@@ -88,7 +88,7 @@
       "  signInWithPopup,",
       "  signOut,",
       "  onAuthStateChanged,",
-      "  collection, addDoc, serverTimestamp,",
+      "  collection, addDoc, serverTimestamp, getDocs, query, where, orderBy,",
       "  httpsCallable",
       "};",
       "document.dispatchEvent(new Event('tl:firebase-ready'));"
@@ -117,6 +117,11 @@
   var ROLES = { GUEST: 'guest', STUDENT: 'student', TUTOR: 'tutor', STAFF: 'staff' };
   var currentUser = null;
   var currentRole = ROLES.GUEST;
+
+  var _roleListeners = [];
+  function onRoleChange(fn) {
+    _roleListeners.push(fn);
+  }
 
   var ADMIN_EMAIL = 'tutorslink001@gmail.com';
 
@@ -194,6 +199,9 @@
       var allowed = el.getAttribute('data-role').split(',').map(function (r) { return r.trim(); });
       el.style.display = (allowed.indexOf(role) !== -1 || allowed.indexOf('*') !== -1) ? '' : 'none';
     });
+
+    /* Notify role change listeners */
+    _roleListeners.forEach(function (fn) { fn(role, user); });
   }
 
   /* ------------------------------------------------------------------ */
@@ -403,6 +411,45 @@ function submitTutorApplication(data) {
   }
 
   /* ------------------------------------------------------------------ */
+  /*  Staff: list pending tutor applications                            */
+  /* ------------------------------------------------------------------ */
+  function listPendingApplications() {
+    var tlf = window.__TLFirebase;
+    if (tlf && _db) {
+      var q = tlf.query(
+        tlf.collection(_db, 'tutorApplications'),
+        tlf.where('status', '==', 'pending'),
+        tlf.orderBy('submittedAt', 'desc')
+      );
+      return tlf.getDocs(q).then(function (snap) {
+        var results = [];
+        snap.forEach(function (doc) {
+          results.push(Object.assign({ id: doc.id }, doc.data()));
+        });
+        return results;
+      });
+    }
+    console.info('[TutorsLink stub] listPendingApplications');
+    return Promise.resolve([]);
+  }
+
+  /**
+   * Approve a tutor application (staff only).
+   * @param {string} uid            The applicant's Firebase UID
+   * @param {string} applicationId  The Firestore application document ID
+   * @returns {Promise}
+   */
+  function approveTutorApplication(uid, applicationId) {
+    var tlf = window.__TLFirebase;
+    if (tlf && _fns) {
+      var fn = tlf.httpsCallable(_fns, 'approveTutorApplication');
+      return fn({ uid: uid, applicationId: applicationId });
+    }
+    console.info('[TutorsLink stub] approveTutorApplication', { uid: uid, applicationId: applicationId });
+    return Promise.resolve({ data: { success: true, stub: true } });
+  }
+
+  /* ------------------------------------------------------------------ */
   /*  Toast helper                                                       */
   /* ------------------------------------------------------------------ */
   function showToast(msg, type) {
@@ -569,10 +616,13 @@ function submitTutorApplication(data) {
     submitTutorApplication: submitTutorApplication,
     createSupportChatMessage: createSupportChatMessage,
     bookDemoClass: bookDemoClass,
+    approveTutorApplication: approveTutorApplication,
+    listPendingApplications: listPendingApplications,
     openAuthModal: openAuthModal,
     closeAuthModal: closeAuthModal,
     showToast: showToast,
     onReady: onReady,
+    onRoleChange: onRoleChange,
     getUser: function () { return currentUser; },
     getRole: function () { return currentRole; }
   };
