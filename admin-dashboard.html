@@ -107,6 +107,75 @@
     </div>
   </section>
 
+  <!-- ====== Staff Ads Management ====== -->
+  <section class="tl-section" data-role="staff" style="display:none;" aria-labelledby="ads-title">
+    <div class="tl-section__header">
+      <div class="tl-section__tag">Ads &amp; Announcements</div>
+      <h2 class="tl-section__title" id="ads-title">Manage Announcements</h2>
+      <p class="tl-section__desc">Create, edit, and archive public-facing announcements.</p>
+    </div>
+
+    <div style="max-width:1100px;margin:0 auto;">
+      <!-- Toolbar -->
+      <div style="display:flex;justify-content:flex-end;margin-bottom:1.5rem;">
+        <button class="btn btn-primary" id="ads-create-btn" style="gap:0.5rem;">
+          ＋ Create Announcement
+        </button>
+      </div>
+
+      <!-- Status / loading -->
+      <div id="ads-status" style="text-align:center;padding:2rem;color:var(--color-text-muted);" role="status" aria-live="polite">
+        Loading announcements…
+      </div>
+
+      <!-- Ads table -->
+      <div id="ads-container" style="display:none;overflow-x:auto;">
+        <table id="ads-table" style="width:100%;border-collapse:collapse;font-size:0.9rem;" aria-label="Announcements">
+          <thead>
+            <tr style="border-bottom:2px solid var(--color-border);">
+              <th style="padding:0.75rem 1rem;text-align:left;color:var(--color-yellow);font-weight:700;">Title</th>
+              <th style="padding:0.75rem 1rem;text-align:left;color:var(--color-yellow);font-weight:700;">Source</th>
+              <th style="padding:0.75rem 1rem;text-align:left;color:var(--color-yellow);font-weight:700;">Status</th>
+              <th style="padding:0.75rem 1rem;text-align:left;color:var(--color-yellow);font-weight:700;">Created</th>
+              <th style="padding:0.75rem 1rem;text-align:center;color:var(--color-yellow);font-weight:700;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ads-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <div id="ads-empty" style="display:none;text-align:center;padding:3rem 1rem;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;" aria-hidden="true">📢</div>
+        <p style="font-size:1.1rem;font-weight:600;color:var(--color-white);">No announcements yet</p>
+        <p style="color:var(--color-text-muted);">Create your first announcement above.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Ad Create / Edit Modal ====== -->
+  <div class="tl-modal-overlay" id="ad-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ad-modal-title">
+    <div class="tl-modal" style="max-width:540px;">
+      <button class="tl-modal__close" id="ad-modal-close" aria-label="Close">&#10005;</button>
+      <h2 class="tl-section__title" id="ad-modal-title" style="margin-bottom:1.5rem;">New Announcement</h2>
+      <form id="ad-modal-form" novalidate>
+        <div class="tl-form-group" style="margin-bottom:1rem;">
+          <label for="ad-title-input">Title <span class="required">*</span></label>
+          <input type="text" id="ad-title-input" name="title" placeholder="Short headline…" required maxlength="120" />
+        </div>
+        <div class="tl-form-group" style="margin-bottom:1.5rem;">
+          <label for="ad-body-input">Body <span class="required">*</span></label>
+          <textarea id="ad-body-input" name="body" rows="5" placeholder="Announcement details…" required maxlength="2000" style="resize:vertical;"></textarea>
+        </div>
+        <div id="ad-modal-error" style="color:var(--color-pink);font-size:0.85rem;margin-bottom:0.75rem;display:none;"></div>
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+          <button type="button" class="btn btn-outline" id="ad-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="ad-modal-submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ====== Footer ====== -->
   <footer class="tl-footer" role="contentinfo">
     <div class="tl-footer__grid">
@@ -300,14 +369,225 @@
         });
     }
 
+    /* ---------------------------------------------------------------- */
+    /*  Ads Management                                                  */
+    /* ---------------------------------------------------------------- */
+
+    /* Tracks which ad is being edited (null = creating a new one) */
+    var editingAdId = null;
+
+    function openAdModal(ad) {
+      editingAdId = ad ? ad.id : null;
+      var title   = document.getElementById('ad-modal-title');
+      var titleIn = document.getElementById('ad-title-input');
+      var bodyIn  = document.getElementById('ad-body-input');
+      var errEl   = document.getElementById('ad-modal-error');
+      var overlay = document.getElementById('ad-modal-overlay');
+      var submit  = document.getElementById('ad-modal-submit');
+
+      if (title)   title.textContent  = ad ? 'Edit Announcement' : 'New Announcement';
+      if (submit)  submit.textContent = ad ? 'Save Changes' : 'Save';
+      if (titleIn) titleIn.value      = ad ? (ad.title || '') : '';
+      if (bodyIn)  bodyIn.value       = ad ? (ad.body  || '') : '';
+      if (errEl)   errEl.style.display = 'none';
+
+      if (overlay) {
+        overlay.classList.add('open');
+      }
+      document.body.style.overflow = 'hidden';
+      if (titleIn) titleIn.focus();
+    }
+
+    function closeAdModal() {
+      var overlay = document.getElementById('ad-modal-overlay');
+      if (overlay) {
+        overlay.classList.remove('open');
+      }
+      document.body.style.overflow = '';
+      editingAdId = null;
+    }
+
+    function renderAdsTable(ads) {
+      var status    = document.getElementById('ads-status');
+      var container = document.getElementById('ads-container');
+      var tbody     = document.getElementById('ads-tbody');
+      var empty     = document.getElementById('ads-empty');
+
+      if (status)    status.style.display    = 'none';
+      if (container) container.style.display = 'none';
+      if (empty)     empty.style.display     = 'none';
+
+      if (!ads || ads.length === 0) {
+        if (empty) empty.style.display = 'block';
+        return;
+      }
+      if (!tbody || !container) return;
+
+      tbody.innerHTML = ads.map(function (ad) {
+        var statusColor = ad.status === 'active' ? 'var(--color-yellow)' : 'var(--color-text-muted)';
+        return (
+          '<tr style="border-bottom:1px solid var(--color-border);">' +
+            '<td style="padding:0.75rem 1rem;max-width:260px;word-break:break-word;">' + escHtml(ad.title || '') + '</td>' +
+            '<td style="padding:0.75rem 1rem;text-transform:capitalize;">' + escHtml(ad.source || 'website') + '</td>' +
+            '<td style="padding:0.75rem 1rem;color:' + statusColor + ';text-transform:capitalize;">' + escHtml(ad.status || 'active') + '</td>' +
+            '<td style="padding:0.75rem 1rem;white-space:nowrap;">' + formatDate(ad.createdAt) + '</td>' +
+            '<td style="padding:0.75rem 1rem;text-align:center;white-space:nowrap;">' +
+              '<button class="btn btn-outline js-ad-edit-btn" data-ad-id="' + escHtml(ad.id) + '" ' +
+                'style="font-size:0.8rem;padding:0.35rem 0.8rem;margin-right:0.4rem;" ' +
+                (ad.source === 'discord' ? 'title="Discord-synced ads can only be edited on Discord"' : '') +
+                (ad.source === 'discord' ? 'disabled' : '') +
+              '>Edit</button>' +
+              (ad.status === 'active'
+                ? '<button class="btn btn-secondary js-ad-archive-btn" data-ad-id="' + escHtml(ad.id) + '" ' +
+                    'style="font-size:0.8rem;padding:0.35rem 0.8rem;">Archive</button>'
+                : '<button class="btn btn-outline js-ad-restore-btn" data-ad-id="' + escHtml(ad.id) + '" ' +
+                    'style="font-size:0.8rem;padding:0.35rem 0.8rem;">Restore</button>') +
+            '</td>' +
+          '</tr>'
+        );
+      }).join('');
+
+      container.style.display = 'block';
+
+      /* Wire edit buttons */
+      tbody.querySelectorAll('.js-ad-edit-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-ad-id');
+          var ad = ads.find(function (a) { return a.id === id; });
+          if (ad) openAdModal(ad);
+        });
+      });
+
+      /* Wire archive buttons */
+      tbody.querySelectorAll('.js-ad-archive-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-ad-id');
+          btn.disabled = true;
+          btn.textContent = '…';
+          window.TLFunctions.archiveAd(id)
+            .then(function () {
+              window.TLFunctions.showToast('Announcement archived.', 'success');
+              loadAds();
+            })
+            .catch(function (err) {
+              btn.disabled = false;
+              btn.textContent = 'Archive';
+              window.TLFunctions.showToast('Error: ' + ((err && err.message) || 'Archive failed.'), 'error');
+            });
+        });
+      });
+
+      /* Wire restore buttons */
+      tbody.querySelectorAll('.js-ad-restore-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-ad-id');
+          btn.disabled = true;
+          btn.textContent = '…';
+          window.TLFunctions.updateAd(id, { status: 'active' })
+            .then(function () {
+              window.TLFunctions.showToast('Announcement restored.', 'success');
+              loadAds();
+            })
+            .catch(function (err) {
+              btn.disabled = false;
+              btn.textContent = 'Restore';
+              window.TLFunctions.showToast('Error: ' + ((err && err.message) || 'Restore failed.'), 'error');
+            });
+        });
+      });
+    }
+
+    function loadAds() {
+      var status = document.getElementById('ads-status');
+      if (status) {
+        status.style.display = 'block';
+        status.textContent   = 'Loading announcements…';
+      }
+      var container = document.getElementById('ads-container');
+      var empty     = document.getElementById('ads-empty');
+      if (container) container.style.display = 'none';
+      if (empty)     empty.style.display     = 'none';
+
+      window.TLFunctions.listAds(true)
+        .then(function (ads) { renderAdsTable(ads); })
+        .catch(function (err) {
+          if (status) {
+            status.style.display = 'block';
+            status.textContent   = 'Failed to load announcements. Please refresh.';
+          }
+          console.error('[AdminDashboard] Failed to load ads:', err);
+        });
+    }
+
+    function initAdsManagement() {
+      var createBtn = document.getElementById('ads-create-btn');
+      if (createBtn) {
+        createBtn.addEventListener('click', function () { openAdModal(null); });
+      }
+
+      var closeBtn   = document.getElementById('ad-modal-close');
+      var cancelBtn  = document.getElementById('ad-modal-cancel');
+      var overlay    = document.getElementById('ad-modal-overlay');
+      var form       = document.getElementById('ad-modal-form');
+
+      if (closeBtn)  closeBtn.addEventListener('click',  closeAdModal);
+      if (cancelBtn) cancelBtn.addEventListener('click', closeAdModal);
+
+      if (overlay) {
+        overlay.addEventListener('click', function (e) {
+          if (e.target === overlay) closeAdModal();
+        });
+      }
+
+      if (form) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var title  = document.getElementById('ad-title-input').value.trim();
+          var body   = document.getElementById('ad-body-input').value.trim();
+          var errEl  = document.getElementById('ad-modal-error');
+          var submit = document.getElementById('ad-modal-submit');
+
+          if (errEl) errEl.style.display = 'none';
+          if (!title || !body) {
+            if (errEl) { errEl.textContent = 'Title and body are required.'; errEl.style.display = 'block'; }
+            return;
+          }
+
+          submit.disabled = true;
+          submit.textContent = 'Saving…';
+
+          var promise = editingAdId
+            ? window.TLFunctions.updateAd(editingAdId, { title: title, body: body })
+            : window.TLFunctions.createAd({ title: title, body: body });
+
+          promise
+            .then(function () {
+              closeAdModal();
+              window.TLFunctions.showToast(
+                editingAdId ? 'Announcement updated!' : 'Announcement created!', 'success'
+              );
+              loadAds();
+            })
+            .catch(function (err) {
+              submit.disabled = false;
+              submit.textContent = 'Save';
+              var msg = (err && err.message) ? err.message : 'Save failed. Please try again.';
+              if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+            });
+        });
+      }
+    }
+
     /* ---- Init ---- */
     document.addEventListener('DOMContentLoaded', function () {
       initMobileNav();
+      initAdsManagement();
 
       /* Wait for Firebase auth to resolve, then react to role */
       window.TLFunctions.onRoleChange(function (role) {
         if (role === 'staff') {
           loadApplications();
+          loadAds();
         }
       });
     });

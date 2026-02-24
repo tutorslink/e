@@ -642,6 +642,53 @@ img {
 .tl-tile--pink .tl-tile__arrow   { color: var(--color-pink); }
 .tl-tile--blue .tl-tile__arrow   { color: var(--color-blue); }
 
+/* ---------- Ads / Announcements Grid ---------- */
+.tl-ads-grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.tl-ad-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.tl-ad-card:hover {
+  border-color: var(--color-yellow);
+  box-shadow: 0 8px 30px rgba(255,215,0,0.1);
+}
+
+.tl-ad-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tl-ad-card__body {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.tl-ad-card__date {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-top: auto;
+}
+
 /* ---------- Modal ---------- */
 .tl-modal-overlay {
   display: none;

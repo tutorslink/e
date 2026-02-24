@@ -85,6 +85,23 @@
     </div>
   </section>
 
+  <!-- ====== Announcements ====== -->
+  <section class="tl-section tl-section--alt" id="announcements" aria-labelledby="announcements-title">
+    <div class="tl-section__header">
+      <div class="tl-section__tag">Announcements</div>
+      <h2 class="tl-section__title" id="announcements-title">Latest from TutorsLink</h2>
+      <p class="tl-section__desc">Updates, offers, and news from the team.</p>
+    </div>
+
+    <div id="tl-ads-loading" style="text-align:center;padding:1.5rem;color:var(--color-text-muted);" role="status" aria-live="polite">
+      Loading announcements…
+    </div>
+    <div id="tl-ads-container" class="tl-ads-grid" style="display:none;" aria-label="Announcements"></div>
+    <div id="tl-ads-empty" style="display:none;text-align:center;padding:2rem;color:var(--color-text-muted);">
+      No announcements right now — check back soon!
+    </div>
+  </section>
+
   <!-- ====== Tutor Carousel ====== -->
   <section class="tl-section tl-section--alt" id="tutors" aria-labelledby="tutors-title">
     <div class="tl-section__header">
@@ -235,6 +252,7 @@
   <div class="tl-toast" id="tl-toast" role="alert" aria-live="polite"></div>
 
   <script src="assets/js/firebase-app.js"></script>
+  <script src="assets/js/ads.js"></script>
   <script src="assets/js/carousel.js"></script>
 </body>
 </html>
