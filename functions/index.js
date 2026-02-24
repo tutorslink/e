@@ -198,25 +198,124 @@ exports.approveTutorApplication = functions.https.onCall(async (data, context) =
 
 /* ------------------------------------------------------------------ */
 /*  7. syncDiscordAdsWebhook                                           */
-/*  Stub HTTP endpoint to receive events from Discord (e.g., bot ads) */
+/*  Receives Discord message events from a bot and syncs them to the  */
+/*  'ads' Firestore collection so they appear on the website.         */
+/*                                                                     */
+/*  Expected payload (sent by your Discord bot):                      */
+/*    {                                                                */
+/*      event: 'MESSAGE_CREATE' | 'MESSAGE_UPDATE' | 'MESSAGE_DELETE',*/
+/*      messageId: string,       — Discord message snowflake          */
+/*      channelId: string,       — Discord channel snowflake          */
+/*      authorId: string,        — Discord user snowflake             */
+/*      authorName: string,      — Discord display name               */
+/*      title: string,           — First line / embed title           */
+/*      body: string             — Message content / embed body       */
+/*    }                                                                */
+/*                                                                     */
+/*  Security: set the shared secret via                               */
+/*    firebase functions:config:set discord.sync_secret="..."         */
+/*  and pass it in the X-TL-Sync-Secret header from your bot.        */
 /* ------------------------------------------------------------------ */
-exports.syncDiscordAdsWebhook = functions.https.onRequest(async (req, res) => {
-  /* Verify Discord signature (TODO: implement with discord.js or raw HMAC) */
-  /* See docs/discord-integration.md for signature verification details.     */
 
+/** Extract ad title and body from a Discord webhook payload. */
+function extractAdContent(payload) {
+  const title  = String(payload.title   || payload.content || '').trim().slice(0, 120);
+  const adBody = String(payload.body    || payload.content || '').trim().slice(0, 2000);
+  return { title, adBody };
+}
+
+exports.syncDiscordAdsWebhook = functions.https.onRequest(async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
   }
 
-  const body = req.body || {};
-  functions.logger.info('[syncDiscordAdsWebhook] Received event', { type: body.type });
+  /* ---- Optional shared-secret verification ---- */
+  const syncSecret = functions.config().discord && functions.config().discord.sync_secret;
+  if (syncSecret && !syncSecret.startsWith('REPLACE')) {
+    const provided = req.headers['x-tl-sync-secret'] || '';
+    if (provided !== syncSecret) {
+      functions.logger.warn('[syncDiscordAdsWebhook] Invalid sync secret');
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+  }
 
-  /* Stub: store raw event in Firestore for later processing */
-  await db.collection('discordEvents').add({
-    ...body,
-    receivedAt: admin.firestore.FieldValue.serverTimestamp()
-  });
+  const body = req.body || {};
+  const event = String(body.event || '').toUpperCase();
+
+  functions.logger.info('[syncDiscordAdsWebhook] Received event', { event, messageId: body.messageId });
+
+  const messageId = String(body.messageId || '').trim();
+  if (!messageId) {
+    res.status(400).json({ error: 'messageId is required' });
+    return;
+  }
+
+  /* Find existing ad document for this Discord message (if any) */
+  const existing = await db.collection('ads')
+    .where('discordMessageId', '==', messageId)
+    .limit(1)
+    .get();
+
+  if (event === 'MESSAGE_CREATE') {
+    const { title, adBody } = extractAdContent(body);
+
+    if (!title) {
+      res.status(400).json({ error: 'title or content is required' });
+      return;
+    }
+
+    if (!existing.empty) {
+      /* Message already stored — restore it if archived */
+      await existing.docs[0].ref.update({
+        title,
+        body: adBody,
+        status: 'active',
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      await db.collection('ads').add({
+        title,
+        body:             adBody,
+        source:           'discord',
+        status:           'active',
+        discordMessageId: messageId,
+        discordChannelId: String(body.channelId  || '').trim(),
+        discordAuthor:    String(body.authorName || '').trim(),
+        createdBy:        null,
+        createdAt:        admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt:        admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+  } else if (event === 'MESSAGE_UPDATE') {
+    if (existing.empty) {
+      res.status(404).json({ error: 'Ad not found for that messageId' });
+      return;
+    }
+    const { title, adBody } = extractAdContent(body);
+    await existing.docs[0].ref.update({
+      title,
+      body:      adBody,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+  } else if (event === 'MESSAGE_DELETE') {
+    if (!existing.empty) {
+      await existing.docs[0].ref.update({
+        status:    'archived',
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+  } else {
+    /* Unknown event — store raw for debugging */
+    await db.collection('discordEvents').add({
+      ...body,
+      receivedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+  }
 
   res.status(200).json({ success: true });
 });

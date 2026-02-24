@@ -67,7 +67,7 @@
       "         createUserWithEmailAndPassword, signInWithPopup,",
       "         GoogleAuthProvider, signOut }",
       "  from '" + FB_SDK_BASE + "firebase-auth.js';",
-      "import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, where, orderBy }",
+      "import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, where, orderBy, doc, updateDoc, deleteDoc }",
       "  from '" + FB_SDK_BASE + "firebase-firestore.js';",
       "import { getFunctions, httpsCallable }",
       "  from '" + FB_SDK_BASE + "firebase-functions.js';",
@@ -89,6 +89,7 @@
       "  signOut,",
       "  onAuthStateChanged,",
       "  collection, addDoc, serverTimestamp, getDocs, query, where, orderBy,",
+      "  doc, updateDoc, deleteDoc,",
       "  httpsCallable",
       "};",
       "document.dispatchEvent(new Event('tl:firebase-ready'));"
@@ -450,6 +451,95 @@ function submitTutorApplication(data) {
   }
 
   /* ------------------------------------------------------------------ */
+  /*  Ads: list, create, update, archive                                */
+  /* ------------------------------------------------------------------ */
+
+  /**
+   * List ads from Firestore.
+   * @param {boolean} [includeArchived=false]  When true, returns all ads regardless of status.
+   * @returns {Promise<Array>}
+   */
+  function listAds(includeArchived) {
+    var tlf = window.__TLFirebase;
+    if (tlf && _db) {
+      var q = includeArchived
+        ? tlf.query(tlf.collection(_db, 'ads'), tlf.orderBy('createdAt', 'desc'))
+        : tlf.query(
+            tlf.collection(_db, 'ads'),
+            tlf.where('status', '==', 'active'),
+            tlf.orderBy('createdAt', 'desc')
+          );
+      return tlf.getDocs(q).then(function (snap) {
+        var results = [];
+        snap.forEach(function (d) {
+          results.push(Object.assign({ id: d.id }, d.data()));
+        });
+        return results;
+      });
+    }
+    console.info('[TutorsLink stub] listAds');
+    return Promise.resolve([]);
+  }
+
+  /**
+   * Create a new ad (staff only).
+   * @param {{title: string, body: string}} data
+   * @returns {Promise}
+   */
+  function createAd(data) {
+    var tlf = window.__TLFirebase;
+    if (tlf && _db) {
+      return tlf.addDoc(tlf.collection(_db, 'ads'), {
+        title:     String(data.title  || '').trim(),
+        body:      String(data.body   || '').trim(),
+        source:    'website',
+        status:    'active',
+        createdBy: currentUser ? currentUser.uid : null,
+        createdAt: tlf.serverTimestamp(),
+        updatedAt: tlf.serverTimestamp()
+      });
+    }
+    console.info('[TutorsLink stub] createAd', data);
+    return Promise.resolve({ id: 'stub-' + Date.now() });
+  }
+
+  /**
+   * Update an existing ad (staff only).
+   * @param {string} id   Firestore document ID
+   * @param {{title?: string, body?: string, status?: string}} data
+   * @returns {Promise}
+   */
+  function updateAd(id, data) {
+    var tlf = window.__TLFirebase;
+    if (tlf && _db) {
+      var patch = { updatedAt: tlf.serverTimestamp() };
+      if (data.title  !== undefined) { patch.title  = String(data.title).trim(); }
+      if (data.body   !== undefined) { patch.body   = String(data.body).trim();  }
+      if (data.status !== undefined) { patch.status = String(data.status);       }
+      return tlf.updateDoc(tlf.doc(_db, 'ads', id), patch);
+    }
+    console.info('[TutorsLink stub] updateAd', id, data);
+    return Promise.resolve();
+  }
+
+  /**
+   * Archive an ad (soft-delete, staff only).
+   * @param {string} id  Firestore document ID
+   * @returns {Promise}
+   */
+  function archiveAd(id) {
+    var tlf = window.__TLFirebase;
+    if (tlf && _db) {
+      return tlf.updateDoc(tlf.doc(_db, 'ads', id), {
+        status:    'archived',
+        updatedAt: tlf.serverTimestamp()
+      });
+    }
+    console.info('[TutorsLink stub] archiveAd', id);
+    return Promise.resolve();
+  }
+
+  /* ------------------------------------------------------------------ */
   /*  Toast helper                                                       */
   /* ------------------------------------------------------------------ */
   function showToast(msg, type) {
@@ -618,6 +708,10 @@ function submitTutorApplication(data) {
     bookDemoClass: bookDemoClass,
     approveTutorApplication: approveTutorApplication,
     listPendingApplications: listPendingApplications,
+    listAds: listAds,
+    createAd: createAd,
+    updateAd: updateAd,
+    archiveAd: archiveAd,
     openAuthModal: openAuthModal,
     closeAuthModal: closeAuthModal,
     showToast: showToast,

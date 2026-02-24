@@ -10,8 +10,9 @@ without committing any secrets to the repository.
 TutorsLink uses Discord for:
 1. **Webhook notifications** — new tutor applications, demo bookings, and
    system alerts posted to a Discord channel.
-2. **syncDiscordAdsWebhook** — a stub HTTP Cloud Function endpoint to receive
-   incoming events/commands from a Discord bot or integration.
+2. **Ad/Announcement sync** — a Discord bot posts ads to a designated channel;
+   the bot calls `syncDiscordAdsWebhook` which stores them in Firestore so they
+   appear on the TutorsLink website automatically.
 
 Discord **authentication** (login with Discord) is listed as a future feature.
 It requires a custom token exchange flow via a Cloud Function. See the section
@@ -78,7 +79,92 @@ const botToken = functions.config().discord.bot_token;
 
 ---
 
-## 3. Discord Login (Planned)
+## 3. Syncing Discord Ads to the Website
+
+Staff can post announcements / ads to a dedicated Discord channel; the bot
+forwards them to the TutorsLink website database automatically.
+
+### How it works
+
+```
+Discord channel message
+        ↓ (your bot detects the message)
+HTTP POST to syncDiscordAdsWebhook Cloud Function
+        ↓
+Firestore  ads/{id}  (source: "discord", status: "active")
+        ↓
+TutorsLink website reads active ads and displays them
+```
+
+Staff can also manage Discord-sourced ads directly from the
+**Admin Dashboard → Announcements** section (archive only; editing is done
+on Discord).
+
+### Step 1 — Set the shared sync secret
+
+Protect the webhook endpoint with a shared secret that only your bot knows:
+
+```bash
+firebase functions:config:set discord.sync_secret="your-random-long-secret"
+firebase deploy --only functions
+```
+
+### Step 2 — Configure your Discord bot
+
+Your bot should listen for messages in the designated ads channel and send an
+HTTP POST to the Cloud Function URL whenever a message is created, edited, or
+deleted.
+
+**Endpoint:** `https://YOUR_REGION-YOUR_PROJECT.cloudfunctions.net/syncDiscordAdsWebhook`
+
+**Headers:**
+```
+Content-Type: application/json
+X-TL-Sync-Secret: your-random-long-secret
+```
+
+**Payload for a new ad (`MESSAGE_CREATE`):**
+```json
+{
+  "event": "MESSAGE_CREATE",
+  "messageId": "1234567890",
+  "channelId":  "9876543210",
+  "authorId":   "111222333",
+  "authorName": "Staff Member",
+  "title": "Special offer this week!",
+  "body":  "Book a free demo session with any tutor before Friday and get a 10% discount on your first paid lesson."
+}
+```
+
+**Payload for an edit (`MESSAGE_UPDATE`):**
+```json
+{
+  "event": "MESSAGE_UPDATE",
+  "messageId": "1234567890",
+  "title": "Updated title",
+  "body":  "Updated body text."
+}
+```
+
+**Payload for a deletion (`MESSAGE_DELETE`):**
+```json
+{
+  "event": "MESSAGE_DELETE",
+  "messageId": "1234567890"
+}
+```
+
+### Step 3 — Verify ads appear on the website
+
+1. Post a message in the ads channel on Discord.
+2. Your bot sends it to the Cloud Function.
+3. Open `https://tutorslink.com/#announcements` — the ad should appear.
+4. In the **Admin Dashboard → Announcements** table the ad will show
+   `Source: discord`.
+
+---
+
+## 4. Discord Login (Planned)
 
 Firebase Authentication does not natively support Discord as a provider.
 The planned implementation uses a **custom token flow**:
@@ -112,12 +198,13 @@ Implement `discordAuthCallback` in `functions/index.js` when ready.
 
 ---
 
-## 4. Environment Variables Reference
+## 5. Environment Variables Reference
 
 | Firebase config key          | Description                                  |
 |-----------------------------|----------------------------------------------|
 | `discord.webhook_url`       | Discord channel webhook URL for notifications|
 | `discord.bot_token`         | Discord bot token (`Bot TOKEN`)              |
+| `discord.sync_secret`       | Shared secret for the ads-sync endpoint      |
 | `discord.client_id`         | Discord OAuth2 application client ID         |
 | `discord.client_secret`     | Discord OAuth2 application client secret     |
 
@@ -126,7 +213,7 @@ None should appear in source code or `.env` files committed to the repo.
 
 ---
 
-## 5. Local Development with Emulator
+## 6. Local Development with Emulator
 
 ```bash
 # Set config for local emulator
@@ -144,11 +231,13 @@ Add `.runtimeconfig.json` to `.gitignore`:
 
 ---
 
-## 6. Security Notes
+## 7. Security Notes
 
 - **Rotate tokens immediately** if they are accidentally exposed (committed,
   logged, or pasted in a public channel).
 - Use **Discord's IP allowlisting** for the webhook endpoint if available.
-- Validate the `X-Signature-Ed25519` and `X-Signature-Timestamp` headers on
-  the `syncDiscordAdsWebhook` endpoint before processing any payload.
-  See the [Discord interaction security docs](https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization).
+- The `syncDiscordAdsWebhook` endpoint is protected by the `X-TL-Sync-Secret`
+  header. Set `discord.sync_secret` in Firebase config before going live.
+- Validate the `X-Signature-Ed25519` and `X-Signature-Timestamp` headers if
+  you switch to Discord Interactions (slash commands). See the
+  [Discord interaction security docs](https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization).
