@@ -542,10 +542,14 @@
       if (form) {
         form.addEventListener('submit', function (e) {
           e.preventDefault();
-          var title  = document.getElementById('ad-title-input').value.trim();
-          var body   = document.getElementById('ad-body-input').value.trim();
-          var errEl  = document.getElementById('ad-modal-error');
-          var submit = document.getElementById('ad-modal-submit');
+          var titleEl  = document.getElementById('ad-title-input');
+          var bodyEl   = document.getElementById('ad-body-input');
+          var errEl    = document.getElementById('ad-modal-error');
+          var submit   = document.getElementById('ad-modal-submit');
+
+          if (!titleEl || !bodyEl) { return; }
+          var title = titleEl.value.trim();
+          var body  = bodyEl.value.trim();
 
           if (errEl) errEl.style.display = 'none';
           if (!title || !body) {
@@ -553,8 +557,7 @@
             return;
           }
 
-          submit.disabled = true;
-          submit.textContent = 'Saving…';
+          if (submit) { submit.disabled = true; submit.textContent = 'Saving…'; }
 
           var promise = editingAdId
             ? window.TLFunctions.updateAd(editingAdId, { title: title, body: body })
@@ -569,8 +572,7 @@
               loadAds();
             })
             .catch(function (err) {
-              submit.disabled = false;
-              submit.textContent = 'Save';
+              if (submit) { submit.disabled = false; submit.textContent = 'Save'; }
               var msg = (err && err.message) ? err.message : 'Save failed. Please try again.';
               if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
             });

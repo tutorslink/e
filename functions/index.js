@@ -216,6 +216,14 @@ exports.approveTutorApplication = functions.https.onCall(async (data, context) =
 /*    firebase functions:config:set discord.sync_secret="..."         */
 /*  and pass it in the X-TL-Sync-Secret header from your bot.        */
 /* ------------------------------------------------------------------ */
+
+/** Extract ad title and body from a Discord webhook payload. */
+function extractAdContent(payload) {
+  const title  = String(payload.title   || payload.content || '').trim().slice(0, 120);
+  const adBody = String(payload.body    || payload.content || '').trim().slice(0, 2000);
+  return { title, adBody };
+}
+
 exports.syncDiscordAdsWebhook = functions.https.onRequest(async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
@@ -228,7 +236,7 @@ exports.syncDiscordAdsWebhook = functions.https.onRequest(async (req, res) => {
     const provided = req.headers['x-tl-sync-secret'] || '';
     if (provided !== syncSecret) {
       functions.logger.warn('[syncDiscordAdsWebhook] Invalid sync secret');
-      res.status(401).json({ error: 'Unauthorised' });
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
   }
@@ -251,8 +259,7 @@ exports.syncDiscordAdsWebhook = functions.https.onRequest(async (req, res) => {
     .get();
 
   if (event === 'MESSAGE_CREATE') {
-    const title = String(body.title || body.content || '').trim().slice(0, 120);
-    const adBody = String(body.body || body.content || '').trim().slice(0, 2000);
+    const { title, adBody } = extractAdContent(body);
 
     if (!title) {
       res.status(400).json({ error: 'title or content is required' });
@@ -287,8 +294,7 @@ exports.syncDiscordAdsWebhook = functions.https.onRequest(async (req, res) => {
       res.status(404).json({ error: 'Ad not found for that messageId' });
       return;
     }
-    const title  = String(body.title || body.content || '').trim().slice(0, 120);
-    const adBody = String(body.body  || body.content || '').trim().slice(0, 2000);
+    const { title, adBody } = extractAdContent(body);
     await existing.docs[0].ref.update({
       title,
       body:      adBody,
